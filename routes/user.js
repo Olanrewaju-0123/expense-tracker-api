@@ -20,7 +20,7 @@ router.post("/user/login", login);
 router.post("/categories/create", authorization, createCatogories);
 
 //  update a category
-router.put("/categories/:id", authorization, updateCatogories);
+router.put("/categories/:category_id", authorization, updateCatogories);
 
 // create a Transaction
 router.post("/transactions", createTransaction)

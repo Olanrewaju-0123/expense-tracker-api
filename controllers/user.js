@@ -9,12 +9,13 @@ const { Users } = require("../models/user.model");
 const { TemporaryUsers } = require("../models/user_temp.model");
 const { Otp } = require("../models/otp.model");
 const { v4: uuidv4 } = require("uuid");
-const { hashPassword, generateOtp } = require("../utils/index");
+const { hashPassword, generateOtp, category_id } = require("../utils/index");
 const sequelize = require("../config/sequelize");
 const jwt = require("jsonwebtoken");
 const data = require("../messages/index");
 const bcrypt = require("bcrypt");
 const ONE_HOUR = "1h";
+
 
 const createUser = async (req, res, next) => {
   try {
@@ -100,31 +101,31 @@ const verifyEmail = async (req, res, next) => {
         { transaction: t }
       );
 
-      const defaultCategory = await Categories.findOne({
-        where: {
-          user_id: userTemp.user_id,
-          category_type: {
-            [Op.or]: ["income", "expense"],
-          },
-        },
-        transaction: t,
-      });
+      // const defaultCategory = await Categories.findOne({
+      //   where: {
+      //     user_id: userTemp.user_id,
+      //     category_type: {
+      //       [Op.or]: ["income", "expense"],
+      //     },
+      //   },
+      //   transaction: t,
+      // });
       // if (!defaultCategory) {
       //   throw new Error("Default income category not found for this user.");
       // }
       // Insert in Transaction Table
-      await Transactions.create(
-        {
-          transaction_id: uuidv4(),
-          user_id: userTemp.user_id,
-          amount: 0.0,
-          transaction_type: "income",
-          description: "Initial Balance",
-          category: defaultCategory.Categories,
-          date: new Date(),
-        },
-        { transaction: t }
-      );
+      // await Transactions.create(
+      //   {
+      //     transaction_id: uuidv4(),
+      //     user_id: userTemp.user_id,
+      //     amount: 0.0,
+      //     transaction_type: "income",
+      //     description: "Initial Balance",
+      //     category: defaultCategory.Categories,
+      //     date: new Date(),
+      //   },
+      //   { transaction: t }
+      // );
 
       //   delete all data by email from otp table
       await Otp.destroy(
@@ -194,6 +195,8 @@ const createCatogories = async (req, res, next) => {
   try {
     const { name, type } = req.body;
     if (!name || !type) throw new Error("Name and type are required");
+    console.log(name, type);
+ 
     // convert Name to lowerCase
     const nameConverted = name.toLowerCase();
     const typeConverted = type.toLowerCase();
@@ -216,6 +219,7 @@ const createCatogories = async (req, res, next) => {
       user_id: req.user.user_id,
       category_name: nameConverted,
       category_type: typeConverted,
+      category_id: category_id(),
     });
     res.status(200).json({
       status: "success",
@@ -233,7 +237,8 @@ const createCatogories = async (req, res, next) => {
 
 const updateCatogories = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { category_id } = req.params;
+    // console.log("id", id);
     const { name, type } = req.body;
     if (!name || !type) throw new Error("Name and type are required");
     // convert Name to LowerCase
@@ -241,7 +246,7 @@ const updateCatogories = async (req, res, next) => {
     const typeConverted = type.toLowerCase();
     const category = await Categories.findOne({
       where: {
-        id,
+        category_id,
         user_id: req.user.user_id,
       },
     });

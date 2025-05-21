@@ -18,7 +18,15 @@ const hashPassword = async (password) => {
   });
 };
 
+let lastCategoryId = 0;
+const category_id = ()=> {
+  lastCategoryId += 1;
+  return lastCategoryId;
+  
+}
+
 module.exports = {
   generateOtp,
   hashPassword,
+  category_id
 };
